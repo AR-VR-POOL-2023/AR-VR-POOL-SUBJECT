@@ -1,80 +1,94 @@
-# AR/VR pool day 01 - Modeling : Blender Gun
+# AR/VR Day 01: Augmented Reality
 
 ## Prerequisite
 
-Download the last LTS Blender version
-(3.4.1)
+Download the latest LTS version of Unity (2021.3)
 
-Try to refer to this shortcut list all
-throughout the exercise, so that you learn
-how to make multiple actions easily as
-you create your models.
+Install the two modules Android Build Support via Unity Hub
 
-## Exercice 00 : First cube
+## Exercise 01 : Scene setup
 
-Let's create our Blender scene. Start by launching Blender and deleting the objects already present in your scene hierarchy.
-At the top right of your workspace, press the red "X" to enter a side view. Then, drag & drop a reference image in your scene. 
-This is the image you will base your model on.
+To build the AR project, we are going to use a package called « AR Foundation ».
 
-Press Tab to enter Edit mode (or change modes at the top left of your workspace).
-Press Shift + A to create your first cube and move it on top of your reference image.
-Scale it to create a rough top section for your gun.
-Then add a second cube beneath it, and do the same for the lower part of the barrel.
+To install this package, go to the unity package manager. In the list of offered packages, select « ARFoundation » and install it, as well as «ARCoreXR Plugin» package.
 
-## Exercice 01 : Loop cut and adding definition
+Once both of these packages are installed, go to the « project settings ».
+In the XR plug-in Management tab, go to the android sub-tab, and pick «ARCore».
 
-In order to add definition to our object, we will need to subdivide it in many polygons.
+In the Other Settings section:
+• Untick the Auto Graphic API checkbox and remove
+Vulkan from the list of graphic APIs.  
+• In Target Architecture, tick «ARM64».  
+• Then, set your Minimum API level to Android 7.0,
+and Scripting backend to IL2CPP.  
 
-There are many ways to achieve this:  
-• Inserts  
-• Bevels  
-• Chamfers  
-• Loop cuts  
+Back in your Unity scene, right click the « Hierarchy » panel and add two objects:  
+• An AR session  
+• An AR session Origin.  
 
-The more you subdivide, the more precise your work will be, but too much precision can be burdensome, so be careful not to overdo it.
-For our purposes, we will start by creating loop cuts. As you cut, move the new vertices around to define your shape.
+> Both of these components are necessary: they will enable your compilation platform to create a session where AR interaction is possible.
+>
+> This way, the AR session Origin enables you to translate the position of some real objects (like a flat surface) as precise points, with coordinates in > the application, thanks to a tracking system.
 
-## Exercice 02 : Extruding
+Since the AR session already has a camera, you can now delete the base camera from your hierarchy.
+Add a new component to your AR session origin object. To do so, select your object, then click «add component» in the inspector.
 
-As you select an edge, you may choose to create a new polygon from it. This is called extruding. You may extrude from a face, an edge, even a vertex.
-In order to create the grip of your gun, extrude the edge you created with your previous subdivision.
+Add an AR Plane Manager. This ARCore library script will make you capable of detecting flat surfaces through your mobile device’s camera and overlaying a plane on it.
+A plane is a flat surface represented by coordinates, dimensions, and bounding points.
+You’ll notice that this script awaits several parameters, like the Prefab Plane.
 
-Don't forget to define your shape as you go (either with multiple extrusions or with loop cuts, for example), so that your grip matches your reference as close as possible.
+This object will be instantiated in our scene as soon as the plane manager detects a flat surface.
 
-## Exercice 03 : Complex insertions & extrusions
+To create that flat surface, add another object to your hierarchy. This time, make it an AR Default Plane.
+Pass this new object as a parameter to the AR Plane Manager script.
 
-In order to create the trigger area for our gun, we will need to shrink the central bottom part of our lower barrel.
+## Exercise 02: Plane detection
 
-Make two loop cuts in order to delimit your point of extrusion, then make an insert on the center face, so that you end up with a smaller face to extrude.
+Add a new component to your AR Session Origin: an AR Raycast Manager. This script will enable us to create rays from a point to another, towards a specific direction, on a defined or undefined length.
 
-You may now extrude this face to start creating the shape of your trigger frame.
-As you extrude, don't forget to move your vertices around to define your shape!
+In our case, we want to create a ray starting from our camera objective, going on for an indeterminate length.
+If the ray intercepts an object, it will make it easier for our program to know if the user is pointing the camera at an object or not.
 
-## Exercice 04 : more details
+In order to know if our camera ray is intercepting our AR Plane, let’s create a scipt.
+In our hierarchy, create a new «AR controller» GameObject.
+Add to it a new script type component. The goal of this script is for a cube to spawn when the user touches the screen.
 
-Let's add more detail to our gun.
-Add one or more loop cuts to the front part of your lower barrel, so that you may scale down its width.
+In order to do that, the script will need to know if the camera is pointed to the AR Plane, and if the screen is
+being pressed. If it’s the case, we will display a cube:
+• Create two variables, a GameObject type one, representing the object to spawn, and a ARRaycastManager one, representing our ray manager.  
+• In the Update() function, detect if the user touched the screen.  
 
-> Remember that you can limit your actions to a single axis by pressing X, Y or Z once while moving, rotating or scaling.
+> https://docs.unity3d.com/ScriptReference/Input-touchCount.html  
 
-Add an autosmooth. As you do so, you might notice that your polygons' normals are random, which prevents your object from being shaded properly.
-Normals are a part of a polygon that allows calculation of lights and reflections.
-Thus, if the normals of two adjacent polygons differ, they won't react to light in the same way, which will make each of them clearly distinct in the render.
+• If the user interacts with the screen, we will ask the RaycastManager if the ray coming from our camera has intersected with our AR Plane.  
 
-Adding an autosmooth allows us to add some artificial definition to your shape without necessarily adding more polys (which can be useful in specific
-cases, like games or other realtime softwares).
+> Use the Raycast() function !  
 
-For now, select your gun in Object mode, and under the green "Data Object Properties panel", set your Normals to Auto Smooth.
-Add a custom material to your object. In the dropdown menu that allows you to adjust your viewport materials (wireframe, solid...), add a black matcap.
+• Then, if RaycastManager finds one or several intersections, then we spawn our GameObject  
 
-Add a Cavity, then play around with the Ridge setting to obtain something close to this:
+Once this script is done, don’t forget to pass an object to spawn as parameter (i.e., a Cube) as well as your RaycastManager using the Inspector tab.
+Switch to developer mode on your android smartphone, and enable USB debugging.
 
-## Exercice 05 : Bonus
+Compile your app (Build and Run).
 
-You now have acquired the basics of modeling.  
+## Exercice 03: Interactive cube 
 
-Using your knowledge, add definition to your model :  
-• Add the sights and the muzzle of your gun  
-• Define the shape of the barrel  
-• Add a different texture for each part of your
-model  
+For this second part, we are going to create an interactive cube. We need to display an information panel when looking directly at a cube, with a simple description on it.
+
+For starters, let’s create a cube in your hierarchy:  
+• Add a new GameObject as a child, that we’ll call « InfoPoint ».  
+• As a child of that GameObject, add a new quad object. It’s going to be used as our panel. Call it « InfoPanel ».  
+
+Create a new material in your Assets folder. In Unity, materials are components enabling you to add a texture to your objects.
+Set up this material to get a color that you enjoy, and add some transparency (in order to do that, don’t forget to set the “Rendering mode” parameter to transparent)
+
+Let’s add some text to our panel:
+● Create a « Text – Text Mesh Pro » object as an “InfoPanel”. Accept the « TMP essentials » imports.  
+● Using the gizmo around the text, or the Transform parameter, make the text zone smaller, so that it fits our panel.  
+● Tick the AutoSize checkbox, and set the min and max parameters respectively to 0 and 1000.  
+● Then, slightly pull the text so that it’s not colliding with the panel.  
+
+In order to create our panel’s animation, we need to move the gizmo from our « InfoPoint ».  
+Move your infoPoint directly in contact with the top of our cube. We’ll be able to toy with a “Scaling” extension, to display our panel.
+
+## Exercice 04: Hide and seek
